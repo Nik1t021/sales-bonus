@@ -5,7 +5,12 @@
  * @returns {number}
  */
 function calculateSimpleRevenue(purchase, _product) {
-   // @TODO: Расчет выручки от операции
+    const { discount, sale_price, quantity } = purchase;
+
+    const discountRate = discount /100;
+    const totalPrice = sale_price * quantity;
+
+    return totalPrice * (1 - discountRate);
 }
 
 /**
@@ -16,7 +21,21 @@ function calculateSimpleRevenue(purchase, _product) {
  * @returns {number}
  */
 function calculateBonusByProfit(index, total, seller) {
-    // @TODO: Расчет бонуса от позиции в рейтинге
+    const { profit } = seller;
+
+    if (index === 0) {
+        return profit * 0.15;
+    }
+
+    if (index === 1 || idex === 2) {
+        return profit * 0.10;
+    }
+
+    if (index === total - 1) {
+        return 0;
+    }
+
+    return profit * 0.05;
 }
 
 /**
@@ -26,19 +45,45 @@ function calculateBonusByProfit(index, total, seller) {
  * @returns {{revenue, top_products, bonus, name, sales_count, profit, seller_id}[]}
  */
 function analyzeSalesData(data, options) {
-    // @TODO: Проверка входных данных
+    if (!data || !options) {
+        return [] ;
+    }
 
-    // @TODO: Проверка наличия опций
+    const { calculateRevenue, calculateBonus} = options;
 
-    // @TODO: Подготовка промежуточных данных для сбора статистики
+    if(!calculateRevenue || !calculateBonus) {
+        return [];
+    }
 
-    // @TODO: Индексация продавцов и товаров для быстрого доступа
+    const sellers = data.seller.map(seller => {
+        const profit = seller.items.reduce((sum, purchase) => {
+            const product = data.products.find(
+                item => item.id === purchase.product_id
+            );
 
-    // @TODO: Расчет выручки и прибыли для каждого продавца
+            const revenue = calculateRevenue(purchase, product);
 
-    // @TODO: Сортировка продавцов по прибыли
+            return sum + revenue;
+        }, 0);
 
-    // @TODO: Назначение премий на основе ранжирования
+        return {
+            ...seller,
+            profit
+        };
+    });
 
-    // @TODO: Подготовка итоговой коллекции с нужными полями
+    const sorted = sellers.toSorted(
+        (a, b) => b.profit - a.profit
+    );
+
+    const report = sorted.map((seller, index) => ({
+        ...seller,
+        bonus: calculateBonus(
+            index,
+            sorted.length,
+            seller
+        )
+    }));
+
+    return report;
 }
