@@ -295,6 +295,26 @@ function analyzeSalesData(data, options) {
 
 
 
+// Запуск
+
+console.log(data);
+
+const report =
+    analyzeSalesData(
+        data,
+        {
+            calculateRevenue:
+                calculateSimpleRevenue,
+
+            calculateBonus:
+                calculateBonusByProfit
+        }
+    );
+
+console.table(report);
+
+
+
 
 
 
